@@ -3,19 +3,19 @@ import matplotlib.pyplot as plt
 
 # Time and step variables
 T = 10       # Total time
-dt = 0.001  # Time step size
+dt = 0.01  # Time step size
 N = int(T/dt) # total number of time steps
 
-n = 100       # number of runs for the numerical solution
+n = 100       # number of runs
 
 # Coefficients and Operators used in drift/diffusion terms
 gamma = 0.01                     # coupling coefficient
-A = np.array([[0,0], [1,0]])   # operator A = sigma minus 1 0, 0 -1
+A = np.array([[0,0], [1,0]])   # operator A = sigma minus
 A_dagger = A.conj().T           # conj transpose of A
 AAD = A + A_dagger              # A + A dagger
 
 # Arbitrary Hamiltonian matrix
-H = np.array([[0,1], [1,0]])   # H = sigma x
+H = np.array([[0,1], [1,0]])   # Hamiltonian = sigma x
 print("Hamiltonian matrix H is \n", H)
 
 # Initial state psi
@@ -87,12 +87,13 @@ for i in range(0,n):
 
     if i==0:
 
-        diagonal_elements = np.diagonal(currentEvolution.real, axis1=1, axis2=2) # diagonal elements (real) from each time step
+        #diagonal_elements = np.diagonal(currentEvolution.real, axis1=1, axis2=2) # diagonal elements (real) from each time step
 
         for j in range(currentEvolution.shape[1]): # plotting diagonal elements
 
-            plt.plot(t_values, currentEvolution[:, j, j].real, label=f"ρ(t) {j}{j} ", color=colorList[j])
-            #plt.plot(t_values, currentEvolution[:, 1 - j, j].real, label=f"ρ(t) {1 - j}{j}",color=colorList[j], linestyle='--')
+            plt.plot(t_values, currentEvolution[:, j, j].real, label=f"ρ(t) {j}{j} ", color=colorList[j]) # diagonal elements
+            plt.plot(t_values, currentEvolution[:, j, 1 - j].real, label=f"ρ(t) {1 - j}{j} real",color=colorList[j], linestyle='--') # off-diagonal real
+            plt.plot(t_values, currentEvolution[:, j, 1 - j].imag, label=f"ρ(t) {1 - j}{j} imaginary",color=colorList[j], linestyle=':') # off-diagonal imaginary
 
         traces = np.zeros(N+1)
 
@@ -105,13 +106,13 @@ for i in range(0,n):
 
     else:
 
-        diagonal_elements = np.diagonal(currentEvolution.real, axis1=1,
-                                        axis2=2)  # diagonal elements (real) from each time step
+        #diagonal_elements = np.diagonal(currentEvolution.real, axis1=1,axis2=2)  # diagonal elements (real) from each time step
 
         for j in range(currentEvolution.shape[1]):  # plotting diagonal elements
 
             plt.plot(t_values, currentEvolution[:, j, j].real, label='_nolegend_', color=colorList[j])
-            # plt.plot(t_values, currentEvolution[:, 1 - j, j].real, label=f"ρ(t) {1 - j}{j}",color=colorList[j], linestyle='--')
+            plt.plot(t_values, currentEvolution[:, j, 1 - j].real, label='_nolegend_', color=colorList[j],linestyle='--')  # off-diagonal real
+            plt.plot(t_values, currentEvolution[:, j, 1 - j].imag, label='_nolegend_',color=colorList[j], linestyle=':')  # off-diagonal imaginary
 
         traces = np.zeros(N + 1)
 
@@ -127,7 +128,7 @@ print(EvolutionList)
 
 plt.xlabel("Time")
 plt.ylabel("ρ(t) Component")
-plt.title("Stochastic Schrodinger Evolution of |1> by Euler Method (ρ(t) components)")
+plt.title("Stochastic Schrodinger Evolution of |1> by Euler Method ρ(t)")
 plt.legend()
 plt.show()
 
@@ -136,33 +137,45 @@ plt.show()
 AvgEvolution00 = np.zeros(N+1)
 AvgEvolution11 = np.zeros(N+1)
 AvgEvolutionTrace = np.zeros(N+1)
-#AvgEvolution01 = np.zeros(N+1)
-#AvgEvolution10 = np.zeros(N+1)
+AvgEvolution01R = np.zeros(N+1)
+AvgEvolution10R = np.zeros(N+1)
+AvgEvolution01I = np.zeros(N+1)
+AvgEvolution10I = np.zeros(N+1)
+
 
 for i in range(N+1):
     sum00 = 0
     sum11 = 0
     sumTrace = 0
-    #sum01 = 0
-    #sum10 = 0
+    sum01R = 0
+    sum10R= 0
+    sum01I = 0
+    sum10I = 0
     for j in range(0,n):
         sum00 += EvolutionList[j][i][0][0]
         sum11 += EvolutionList[j][i][1][1]
         sumTrace += np.trace(EvolutionList[j][i])
-        #sum01 += EvolutionList[j][i][1].imag
-        #sum10 += np.sqrt(np.abs(EvolutionList[j][i][0])**2 + np.abs(EvolutionList[j][i][1])**2)
+        sum01R += EvolutionList[j][i][0][1].real
+        sum10R += EvolutionList[j][i][1][0].real
+        sum01I += EvolutionList[j][i][0][1].imag
+        sum10I += EvolutionList[j][i][1][0].imag
     AvgEvolution00[i] = sum00 / len(EvolutionList)
     AvgEvolution11[i] = sum11 / len(EvolutionList)
     AvgEvolutionTrace[i] = sumTrace / len(EvolutionList)
-    #AvgEvolution01[i] = sum01 / len(EvolutionList)
-    #AvgEvolution10[i] = sum10 / len(EvolutionList)
+    AvgEvolution01R[i] = sum01R / len(EvolutionList) +0.5
+    AvgEvolution10R[i] = sum10R / len(EvolutionList)
+    AvgEvolution01I[i] = sum01I / len(EvolutionList)
+    AvgEvolution10I[i] = sum10I / len(EvolutionList)
 
 
 plt.plot(t_values, AvgEvolution00,label=f"Average ρ(t)00", color='green',linewidth=5)
 plt.plot(t_values, AvgEvolution11,label=f"Average ρ(t)11 ",color='cyan',linewidth=5)
 plt.plot(t_values, AvgEvolutionTrace,label="Average ρ(t) trace",color='gray',linewidth=5)
-#plt.plot(t_values, AvgEvolution01,label=f"Average ρ(t)01",color='darkred',linewidth=5)
-#plt.plot(t_values, AvgEvolution10,label=f"Average ρ(t)10",color='orange',linewidth=5)
+plt.plot(t_values, AvgEvolution01R,label=f"Average ρ(t)01 Real",color='darkred',linewidth=5)
+plt.plot(t_values, AvgEvolution10R,label=f"Average ρ(t)10 Real",color='orange',linewidth=5)
+plt.plot(t_values, AvgEvolution01I,label=f"Average ρ(t)01 Imaginary",color='darkred',linestyle=':', linewidth=5)
+plt.plot(t_values, AvgEvolution10I,label=f"Average ρ(t)10 Imaginary",color='orange',linestyle=':',linewidth=5)
+
 
 # plot labels and titles
 
